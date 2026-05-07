@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import seaborn as sns
 
-st.set_page_config(page_title='Starbucks Offer Predictor', page_icon='☕', layout='wide')
+st.set_page_config(page_title='Starbucks Offer Completion Predictor', page_icon='☕', layout='wide')
 
 DARK_GREEN = '#1A2F20'
 MID_GREEN  = '#243B2C'
@@ -103,7 +103,7 @@ with open('model.pkl', 'rb') as f:
 df, portfolio = load_data()
 
 st.image('pictures/starbucks-8.webp', use_container_width=True)
-st.title('☕ Starbucks Offer Intelligence')
+st.title('☕ Starbucks Offer Completion Predictor')
 st.markdown('*A machine learning project that predicts whether a Starbucks customer will complete a promotional offer.*')
 
 tab1, tab2, tab3, tab4 = st.tabs(['Overview', 'Data Insights', 'Model', 'Predictor'])

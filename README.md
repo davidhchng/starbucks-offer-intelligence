@@ -1,4 +1,4 @@
-# Starbucks Offer Intelligence
+# Starbucks Offer Completion Predictor
 
 ![Starbucks](pictures/starbucks-8.webp)
 
