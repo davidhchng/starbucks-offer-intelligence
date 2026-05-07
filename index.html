@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Starbucks Offer Completion Predictor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: #1A2F20;
+      color: #F5ECD7;
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+    }
+
+    header {
+      position: relative;
+      overflow: hidden;
+      height: 260px;
+    }
+
+    header img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 40%;
+      filter: brightness(0.45);
+    }
+
+    header .header-text {
+      position: absolute;
+      bottom: 28px;
+      left: 40px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      color: #CBA258;
+      letter-spacing: 0.5px;
+    }
+
+    header p {
+      color: #F5ECD7;
+      opacity: 0.85;
+      margin-top: 6px;
+      font-size: 0.95rem;
+    }
+
+    nav {
+      background-color: #243B2C;
+      display: flex;
+      gap: 4px;
+      padding: 10px 40px;
+      border-bottom: 1px solid #CBA25833;
+    }
+
+    nav button {
+      background: none;
+      border: none;
+      color: #F5ECD7;
+      padding: 8px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+
+    nav button:hover { background-color: #CBA25822; }
+    nav button.active { background-color: #CBA258; color: #1A2F20; font-weight: bold; }
+
+    main { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+
+    .tab { display: none; }
+    .tab.active { display: block; }
+
+    h2 { color: #CBA258; font-size: 1.5rem; margin-bottom: 16px; }
+    h3 { color: #CBA258; font-size: 1.1rem; margin: 24px 0 10px; }
+
+    p, li { line-height: 1.75; color: #F5ECD7; opacity: 0.9; }
+    ul { padding-left: 1.4rem; margin-top: 8px; }
+    li { margin-bottom: 6px; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 32px;
+    }
+
+    .metric-box {
+      background-color: #243B2C;
+      border-left: 4px solid #CBA258;
+      padding: 16px 20px;
+      border-radius: 8px;
+    }
+
+    .metric-box .number { font-size: 1.8rem; color: #CBA258; font-weight: bold; }
+    .metric-box .label  { font-size: 0.85rem; color: #F5ECD7; opacity: 0.75; margin-top: 4px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 0.95rem;
+    }
+
+    th {
+      background-color: #243B2C;
+      color: #CBA258;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid #CBA25844;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #CBA25820;
+      color: #F5ECD7;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    td.winner { color: #CBA258; font-weight: bold; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .form-section h3 { margin-top: 0; }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: #CBA258;
+      margin-bottom: 4px;
+      margin-top: 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #CBA258;
+    }
+
+    .range-val {
+      font-size: 0.8rem;
+      color: #F5ECD7;
+      opacity: 0.6;
+      margin-top: 2px;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      background-color: #243B2C;
+      border: 1px solid #CBA25844;
+      color: #F5ECD7;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+
+    .checkbox-group { margin-top: 14px; }
+
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #F5ECD7;
+      font-size: 0.9rem;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    input[type="checkbox"] { accent-color: #CBA258; width: 16px; height: 16px; }
+
+    .predict-btn {
+      display: block;
+      margin: 32px auto 0;
+      background-color: #CBA258;
+      color: #1A2F20;
+      border: none;
+      padding: 12px 48px;
+      border-radius: 24px;
+      font-size: 1rem;
+      font-family: inherit;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .predict-btn:hover { background-color: #F5ECD7; }
+
+    #result {
+      margin-top: 28px;
+      padding: 18px 24px;
+      border-radius: 10px;
+      font-size: 1rem;
+      display: none;
+    }
+
+    #result.success { background-color: #1E4A2E; border-left: 4px solid #4CAF50; color: #A8E6B4; }
+    #result.error   { background-color: #4A1E1E; border-left: 4px solid #E57373; color: #F4AEAE; }
+  </style>
+</head>
+<body>
+
+<header>
+  <img src="pictures/starbucks-8.webp" alt="Starbucks" />
+  <div class="header-text">
+    <h1>☕ Starbucks Offer Completion Predictor</h1>
+    <p>A machine learning project predicting whether a customer will complete a promotional offer.</p>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('overview', this)">Overview</button>
+  <button onclick="showTab('model', this)">Model</button>
+  <button onclick="showTab('predictor', this)">Predictor</button>
+</nav>
+
+<main>
+
+  <div id="overview" class="tab active">
+    <h2>What this project does</h2>
+    <p>
+      Starbucks sends promotional offers through its rewards app. Some customers act on them, many don't.
+      This project uses real customer and transaction data to figure out which customers are most likely
+      to follow through on an offer, based on who they are and what kind of offer it is.
+    </p>
+    <p style="margin-top:12px">
+      The goal was to build a full machine learning pipeline from raw data to a working prediction tool.
+      That means cleaning messy data, engineering useful features, comparing several models, and wrapping
+      the best one in an app you can actually use.
+    </p>
+
+    <h3>The data</h3>
+    <p>Three JSON files from Starbucks covering about 17,000 customers and 300,000 transaction events.</p>
+    <ul>
+      <li><strong style="color:#CBA258">portfolio.json</strong> — 10 promotional offers: BOGO, discount, and informational types, each with a spend target, reward, duration, and delivery channels.</li>
+      <li><strong style="color:#CBA258">profile.json</strong> — customer demographics: age, income, gender, and membership start date. Records with placeholder values (age 118, null income) were removed.</li>
+      <li><strong style="color:#CBA258">transcript.json</strong> — full event log of every offer received, viewed, completed, and transaction made, with timestamps.</li>
+    </ul>
+
+    <h3>How we built the target variable</h3>
+    <p>
+      The raw data has no "completed" column. For each offer a customer received, we checked whether
+      a matching "offer completed" event existed for that same customer and offer ID. If it did, the
+      label is 1. If not, it is 0. This gave us 66,501 labeled (customer, offer) pairs to train on.
+    </p>
+
+    <div class="metrics">
+      <div class="metric-box">
+        <div class="number">66,501</div>
+        <div class="label">labeled (customer, offer) pairs</div>
+      </div>
+      <div class="metric-box">
+        <div class="number">14,825</div>
+        <div class="label">customers with valid demographics</div>
+      </div>
+      <div class="metric-box">
+        <div class="number">82%</div>
+        <div class="label">accuracy on held-out test data</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="model" class="tab">
+    <h2>How the model works</h2>
+    <p>
+      We trained three models on an 80/20 train/test split and compared their accuracy on the held-out set.
+    </p>
+
+    <table>
+      <thead>
+        <tr><th>Model</th><th>Accuracy</th><th>F1 (completed)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Logistic Regression</td><td>77%</td><td>0.79</td></tr>
+        <tr><td>Gradient Boosting</td><td>79%</td><td>0.81</td></tr>
+        <tr><td class="winner">Random Forest</td><td class="winner">82%</td><td class="winner">0.83</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Why Random Forest won</h3>
+    <p>
+      Logistic Regression draws a straight boundary through the feature space. It is fast and interpretable
+      but misses complex interactions between features. Random Forest builds many decision trees on random
+      slices of the data and takes a majority vote. Because each tree learns slightly different patterns,
+      the ensemble captures non-linear relationships that a single model would miss.
+    </p>
+
+    <h3>We also tried a PyTorch LSTM</h3>
+    <p>
+      Beyond the scikit-learn models, we built an LSTM neural network in PyTorch to model each customer's
+      sequence of events before receiving an offer. It scored 69% accuracy, lower than Random Forest.
+      The main reason is that most offers in this dataset were sent at time zero, meaning most customers
+      had no prior event history for the sequence model to work with. Random Forest won by leaning on
+      richer static features like income, age, and offer type.
+    </p>
+
+    <h3>Features used</h3>
+    <ul>
+      <li>Customer: age, income, gender, member tenure (days)</li>
+      <li>Offer: type (BOGO / discount / informational), difficulty, duration, reward</li>
+      <li>Channels: email, web, mobile, social (binary)</li>
+    </ul>
+  </div>
+
+  <div id="predictor" class="tab">
+    <h2>Try the predictor</h2>
+    <p>Fill in a customer profile and offer details to get a prediction from the Random Forest model.</p>
+
+    <div class="form-grid">
+      <div class="form-section">
+        <h3>Customer</h3>
+        <label>Age: <span id="age-val">40</span></label>
+        <input type="range" id="age" min="18" max="100" value="40" oninput="document.getElementById('age-val').textContent=this.value" />
+
+        <label>Annual Income ($)</label>
+        <input type="number" id="income" min="30000" max="120000" value="60000" step="1000" />
+
+        <label>Gender</label>
+        <select id="gender">
+          <option value="0">Male</option>
+          <option value="1">Female</option>
+          <option value="2">Other</option>
+        </select>
+
+        <label>Member Tenure: <span id="tenure-val">500</span> days</label>
+        <input type="range" id="tenure" min="0" max="2000" value="500" oninput="document.getElementById('tenure-val').textContent=this.value" />
+      </div>
+
+      <div class="form-section">
+        <h3>Offer</h3>
+        <label>Offer Type</label>
+        <select id="offer_type">
+          <option value="0">BOGO</option>
+          <option value="1">Discount</option>
+          <option value="2">Informational</option>
+        </select>
+
+        <label>Difficulty (min spend): <span id="diff-val">5</span></label>
+        <input type="range" id="difficulty" min="0" max="20" value="5" oninput="document.getElementById('diff-val').textContent=this.value" />
+
+        <label>Duration: <span id="dur-val">7</span> days</label>
+        <input type="range" id="duration" min="3" max="10" value="7" oninput="document.getElementById('dur-val').textContent=this.value" />
+
+        <label>Reward: <span id="rew-val">5</span></label>
+        <input type="range" id="reward" min="0" max="10" value="5" oninput="document.getElementById('rew-val').textContent=this.value" />
+      </div>
+
+      <div class="form-section">
+        <h3>Channels</h3>
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="ch_email" /> Email</label>
+          <label><input type="checkbox" id="ch_web" /> Web</label>
+          <label><input type="checkbox" id="ch_mobile" /> Mobile</label>
+          <label><input type="checkbox" id="ch_social" /> Social</label>
+        </div>
+      </div>
+    </div>
+
+    <button class="predict-btn" onclick="predict()">Predict</button>
+    <div id="result"></div>
+  </div>
+
+</main>
+
+<script>
+  function showTab(name, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  async function predict() {
+    const body = {
+      gender:             parseInt(document.getElementById('gender').value),
+      age:                parseInt(document.getElementById('age').value),
+      income:             parseInt(document.getElementById('income').value),
+      reward:             parseInt(document.getElementById('reward').value),
+      difficulty:         parseInt(document.getElementById('difficulty').value),
+      duration:           parseInt(document.getElementById('duration').value),
+      offer_type:         parseInt(document.getElementById('offer_type').value),
+      member_tenure_days: parseInt(document.getElementById('tenure').value),
+      channel_email:      document.getElementById('ch_email').checked ? 1 : 0,
+      channel_web:        document.getElementById('ch_web').checked ? 1 : 0,
+      channel_mobile:     document.getElementById('ch_mobile').checked ? 1 : 0,
+      channel_social:     document.getElementById('ch_social').checked ? 1 : 0,
+    };
+
+    const res    = await fetch('/api/predict', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data   = await res.json();
+    const result = document.getElementById('result');
+    const pct    = Math.round(data.probability * 100);
+
+    result.style.display = 'block';
+    if (data.prediction === 1) {
+      result.className = 'success';
+      result.textContent = `This customer is likely to complete the offer. Predicted probability: ${pct}%`;
+    } else {
+      result.className = 'error';
+      result.textContent = `This customer is unlikely to complete the offer. Predicted probability: ${pct}%`;
+    }
+  }
+</script>
+
+</body>
+</html>
