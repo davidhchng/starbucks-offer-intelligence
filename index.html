@@ -465,7 +465,13 @@
   let session = null;
 
   async function loadModel() {
-    session = await ort.InferenceSession.create('model.onnx');
+    try {
+      ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/';
+      session = await ort.InferenceSession.create('model.onnx');
+      console.log('Model loaded. Outputs:', session.outputNames);
+    } catch (e) {
+      console.error('Model load failed:', e);
+    }
   }
 
   loadModel();
