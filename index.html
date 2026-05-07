@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Starbucks Offer Completion Predictor</title>
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -378,34 +379,49 @@
     btn.classList.add('active');
   }
 
+  let session = null;
+
+  async function loadModel() {
+    session = await ort.InferenceSession.create('model.onnx');
+  }
+
+  loadModel();
+
   async function predict() {
-    const body = {
-      gender:             parseInt(document.getElementById('gender').value),
-      age:                parseInt(document.getElementById('age').value),
-      income:             parseInt(document.getElementById('income').value),
-      reward:             parseInt(document.getElementById('reward').value),
-      difficulty:         parseInt(document.getElementById('difficulty').value),
-      duration:           parseInt(document.getElementById('duration').value),
-      offer_type:         parseInt(document.getElementById('offer_type').value),
-      member_tenure_days: parseInt(document.getElementById('tenure').value),
-      channel_email:      document.getElementById('ch_email').checked ? 1 : 0,
-      channel_web:        document.getElementById('ch_web').checked ? 1 : 0,
-      channel_mobile:     document.getElementById('ch_mobile').checked ? 1 : 0,
-      channel_social:     document.getElementById('ch_social').checked ? 1 : 0,
-    };
+    if (!session) {
+      alert('Model is still loading, please wait a moment.');
+      return;
+    }
 
-    const res    = await fetch('/api/predict', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    const data   = await res.json();
+    const values = [
+      parseInt(document.getElementById('gender').value),
+      parseInt(document.getElementById('age').value),
+      parseInt(document.getElementById('income').value),
+      parseInt(document.getElementById('reward').value),
+      parseInt(document.getElementById('difficulty').value),
+      parseInt(document.getElementById('duration').value),
+      parseInt(document.getElementById('offer_type').value),
+      parseInt(document.getElementById('tenure').value),
+      document.getElementById('ch_email').checked  ? 1 : 0,
+      document.getElementById('ch_web').checked    ? 1 : 0,
+      document.getElementById('ch_mobile').checked ? 1 : 0,
+      document.getElementById('ch_social').checked ? 1 : 0,
+    ];
+
+    const tensor  = new ort.Tensor('float32', Float32Array.from(values), [1, 12]);
+    const output  = await session.run({ float_input: tensor });
+    const label   = output.label.data[0];
+    const probMap = output.probabilities.data;
+    const prob    = Math.round(probMap[1] * 100);
+
     const result = document.getElementById('result');
-    const pct    = Math.round(data.probability * 100);
-
     result.style.display = 'block';
-    if (data.prediction === 1) {
+    if (label === 1n || label === 1) {
       result.className = 'success';
-      result.textContent = `This customer is likely to complete the offer. Predicted probability: ${pct}%`;
+      result.textContent = `This customer is likely to complete the offer. Predicted probability: ${prob}%`;
     } else {
       result.className = 'error';
-      result.textContent = `This customer is unlikely to complete the offer. Predicted probability: ${pct}%`;
+      result.textContent = `This customer is unlikely to complete the offer. Predicted probability: ${prob}%`;
     }
   }
 </script>

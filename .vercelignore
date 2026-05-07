@@ -1,5 +1,6 @@
-requirements.txt
-render.yaml
 analysis.ipynb
 app.py
+render.yaml
+requirements.txt
 data/
+model.pkl
