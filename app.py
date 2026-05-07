@@ -1,5 +1,6 @@
 import streamlit as st
 import pickle
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -97,10 +98,40 @@ def styled_fig():
     return fig, ax
 
 
-with open('model.pkl', 'rb') as f:
-    model = pickle.load(f)
+@st.cache_resource
+def get_model():
+    if os.path.exists('model.pkl'):
+        with open('model.pkl', 'rb') as f:
+            return pickle.load(f)
+
+    from sklearn.model_selection import train_test_split
+    from sklearn.ensemble import RandomForestClassifier
+
+    df, _ = load_data()
+    df = df.copy()
+    df['gender']     = df['gender'].map({'M': 0, 'F': 1, 'O': 2})
+    df['offer_type'] = df['offer_type'].map({'bogo': 0, 'discount': 1, 'informational': 2})
+    df = df.drop(columns=['became_member_on', 'person', 'offer_id', 'time',
+                           'income_bracket', 'tenure_bin'], errors='ignore')
+    for channel in ['email', 'web', 'mobile', 'social']:
+        df[f'channel_{channel}'] = df['channels'].apply(lambda x: int(channel in x))
+    df = df.drop(columns=['channels'])
+
+    X = df.drop(columns=['completed'])
+    y = df['completed']
+    X_train, _, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    rf = RandomForestClassifier(n_estimators=20, random_state=42)
+    rf.fit(X_train, y_train)
+
+    with open('model.pkl', 'wb') as f:
+        pickle.dump(rf, f)
+
+    return rf
+
 
 df, portfolio = load_data()
+model = get_model()
 
 st.image('pictures/starbucks-8.webp', use_container_width=True)
 st.title('☕ Starbucks Offer Completion Predictor')
