@@ -1,5 +1,7 @@
 # Starbucks Offer Completion Predictor
 
+**Live app:** [starbucks-offer-intelligence-gleg.vercel.app](https://starbucks-offer-intelligence-gleg.vercel.app/)
+
 ![Starbucks](pictures/starbucks-8.webp)
 
 A machine learning project that predicts whether a Starbucks customer will complete a promotional offer, built on real transaction and customer data from Starbucks.
