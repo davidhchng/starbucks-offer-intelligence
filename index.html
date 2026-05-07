@@ -491,15 +491,16 @@
       document.getElementById('ch_social').checked ? 1 : 0,
     ];
 
-    const tensor  = new ort.Tensor('float32', Float32Array.from(values), [1, 12]);
-    const output  = await session.run({ float_input: tensor });
-    const label   = output.label.data[0];
-    const probMap = output.probabilities.data;
-    const prob    = Math.round(probMap[1] * 100);
+    const tensor = new ort.Tensor('float32', Float32Array.from(values), [1, 12]);
+    const output = await session.run({ float_input: tensor });
+
+    const label = Number(output.output_label.data[0]);
+    const probs = output.output_probability.data;
+    const prob  = Math.round(probs[1] * 100);
 
     const result = document.getElementById('result');
     result.style.display = 'block';
-    if (label === 1n || label === 1) {
+    if (label === 1) {
       result.className = 'success';
       result.textContent = `This customer is likely to complete the offer. Predicted probability: ${prob}%`;
     } else {
