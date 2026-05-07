@@ -499,23 +499,17 @@
     ];
 
     const tensor = new ort.Tensor('float32', Float32Array.from(values), [1, 12]);
-    const output = await session.run({ float_input: tensor });
-
-    console.log('Output keys:', Object.keys(output));
-    const labelKey = session.outputNames[0];
-    const probKey  = session.outputNames[1];
-    const label = Number(output[labelKey].data[0]);
-    const probs = output[probKey].data;
-    const prob  = Math.round(probs[1] * 100);
+    const output = await session.run({ float_input: tensor }, ['output_label']);
+    const label  = Number(output.output_label.data[0]);
 
     const result = document.getElementById('result');
     result.style.display = 'block';
     if (label === 1) {
       result.className = 'success';
-      result.textContent = `This customer is likely to complete the offer. Predicted probability: ${prob}%`;
+      result.textContent = 'This customer is likely to complete the offer.';
     } else {
       result.className = 'error';
-      result.textContent = `This customer is unlikely to complete the offer. Predicted probability: ${prob}%`;
+      result.textContent = 'This customer is unlikely to complete the offer.';
     }
     } catch (e) {
       alert('Prediction error: ' + e.message);
