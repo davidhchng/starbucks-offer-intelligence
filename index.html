@@ -472,9 +472,10 @@
 
   async function predict() {
     if (!session) {
-      alert('Model is still loading, please wait a moment.');
+      alert('Model is still loading, please wait a moment and try again.');
       return;
     }
+    try {
 
     const values = [
       parseInt(document.getElementById('gender').value),
@@ -506,6 +507,9 @@
     } else {
       result.className = 'error';
       result.textContent = `This customer is unlikely to complete the offer. Predicted probability: ${prob}%`;
+    }
+    } catch (e) {
+      alert('Prediction error: ' + e.message);
     }
   }
 </script>
